@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentactum"
+version = "0.1.0a0"
+description = "Transactional safety runtime for AI-agent tool actions"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+  { name = "AgentActum contributors" },
+]
+keywords = ["ai-agents", "safety", "transactions", "tool-use"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+dependencies = [
+  "pydantic>=2.10,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.13,<2",
+  "pre-commit>=4,<5",
+  "pytest>=8.3,<10",
+  "pytest-cov>=6,<8",
+  "ruff>=0.8,<1",
+]
+
+[project.urls]
+Repository = "https://github.com/Zeeshier/AgentActum"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = [
+  "--strict-config",
+  "--strict-markers",
+  "--cov=agentactum",
+  "--cov-report=term-missing",
+  "--cov-fail-under=100",
+]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["agentactum"]
+
+[tool.coverage.report]
+exclude_also = [
+  "if TYPE_CHECKING:",
+]
+show_missing = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "SIM", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["agentactum"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]
