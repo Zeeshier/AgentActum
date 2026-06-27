@@ -20,6 +20,18 @@ from agentactum.enums import (
     TransactionStatus,
 )
 from agentactum.execution import ExecutionResult, FailureDetail
+from agentactum.idempotency import (
+    IdempotencyBackend,
+    IdempotencyClaim,
+    IdempotencyError,
+    IdempotencyKeyError,
+    IdempotencyOwnershipError,
+    IdempotencyRecord,
+    IdempotencyRecordStatus,
+    InMemoryIdempotencyBackend,
+    MissingIdempotencyFieldError,
+    create_key,
+)
 from agentactum.ledger import LedgerEvent
 from agentactum.policies import (
     NumericApprovalThresholdPolicy,
@@ -43,7 +55,16 @@ __all__ = [
     "EffectType",
     "ExecutionResult",
     "FailureDetail",
+    "IdempotencyBackend",
+    "IdempotencyClaim",
+    "IdempotencyError",
+    "IdempotencyKeyError",
+    "IdempotencyOwnershipError",
+    "IdempotencyRecord",
+    "IdempotencyRecordStatus",
+    "InMemoryIdempotencyBackend",
     "LedgerEvent",
+    "MissingIdempotencyFieldError",
     "NumericApprovalThresholdPolicy",
     "Policy",
     "PolicyConstraint",
@@ -64,4 +85,5 @@ __all__ = [
     "TransactionStatus",
     "UnknownToolError",
     "__version__",
+    "create_key",
 ]
