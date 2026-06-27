@@ -2,7 +2,17 @@
 
 from agentactum.approvals import ApprovalRequest
 from agentactum.compensation import CompensationResult
-from agentactum.contracts import ActionIntent, ToolContract, ToolSchema
+from agentactum.contracts import (
+    ActionIntent,
+    DuplicateToolRegistrationError,
+    RegisteredTool,
+    ToolContract,
+    ToolHandler,
+    ToolRegistry,
+    ToolRegistryError,
+    ToolSchema,
+    UnknownToolError,
+)
 from agentactum.enums import (
     EffectType,
     PolicyDecisionType,
@@ -20,6 +30,7 @@ __all__ = [
     "ActionIntent",
     "ApprovalRequest",
     "CompensationResult",
+    "DuplicateToolRegistrationError",
     "EffectType",
     "ExecutionResult",
     "FailureDetail",
@@ -28,9 +39,14 @@ __all__ = [
     "PolicyDecision",
     "PolicyDecisionType",
     "RiskLevel",
+    "RegisteredTool",
+    "ToolHandler",
     "ToolContract",
+    "ToolRegistry",
+    "ToolRegistryError",
     "ToolSchema",
     "Transaction",
     "TransactionStatus",
+    "UnknownToolError",
     "__version__",
 ]
