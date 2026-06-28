@@ -52,7 +52,7 @@ from agentactum.policies import (
     RiskApprovalPolicy,
     ToolAllowDenyPolicy,
 )
-from agentactum.transactions import Transaction
+from agentactum.transactions import IllegalTransactionTransitionError, Transaction
 
 __version__ = "0.1.0a0"
 
@@ -72,6 +72,7 @@ __all__ = [
     "IdempotencyOwnershipError",
     "IdempotencyRecord",
     "IdempotencyRecordStatus",
+    "IllegalTransactionTransitionError",
     "InMemoryIdempotencyBackend",
     "InMemoryLedger",
     "Ledger",

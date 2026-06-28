@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from agentactum.contracts import ActionIntent
 from agentactum.enums import TransactionStatus
 from agentactum.ledger import LedgerEvent
-from agentactum.transactions import Transaction
+from agentactum.transactions import IllegalTransactionTransitionError, Transaction
 
 INTENT_ID = UUID("20000000-0000-4000-8000-000000000001")
 SECOND_INTENT_ID = UUID("20000000-0000-4000-8000-000000000002")
@@ -139,6 +139,128 @@ def test_terminal_and_nonterminal_completion_fields_are_consistent() -> None:
         make_transaction(status=TransactionStatus.COMMITTED)
     with pytest.raises(ValidationError, match="non-terminal"):
         make_transaction(completed_at=NOW)
+
+
+def test_legal_transaction_transitions_return_new_snapshot() -> None:
+    """The explicit state machine governs state without mutating snapshots."""
+    proposed = make_transaction()
+    validating = proposed.transition(
+        TransactionStatus.VALIDATING,
+        updated_at=NOW + timedelta(seconds=1),
+    )
+    awaiting = validating.transition(
+        TransactionStatus.AWAITING_APPROVAL,
+        approval_request_ids=(APPROVAL_ID,),
+        updated_at=NOW + timedelta(seconds=2),
+    )
+    approved = awaiting.transition(
+        TransactionStatus.APPROVED,
+        updated_at=NOW + timedelta(seconds=3),
+    )
+    executing = approved.transition(
+        TransactionStatus.EXECUTING,
+        updated_at=NOW + timedelta(seconds=4),
+    )
+    committed = executing.transition(
+        TransactionStatus.COMMITTED,
+        updated_at=NOW + timedelta(seconds=5),
+    )
+
+    assert proposed.status is TransactionStatus.PROPOSED
+    assert validating.status is TransactionStatus.VALIDATING
+    assert awaiting.approval_request_ids == (APPROVAL_ID,)
+    assert approved.status is TransactionStatus.APPROVED
+    assert executing.status is TransactionStatus.EXECUTING
+    assert committed.status is TransactionStatus.COMMITTED
+    assert committed.completed_at == NOW + timedelta(seconds=5)
+    assert committed.intents == proposed.intents
+
+
+def test_failure_and_compensation_transitions_preserve_reason_fields() -> None:
+    """Failure-like legal transitions require and retain an explicit reason."""
+    failed = (
+        make_transaction()
+        .transition(TransactionStatus.VALIDATING, updated_at=NOW + timedelta(seconds=1))
+        .transition(
+            TransactionStatus.FAILED,
+            updated_at=NOW + timedelta(seconds=2),
+            status_reason="Validation failed.",
+        )
+    )
+    partially_compensated = (
+        make_transaction()
+        .transition(TransactionStatus.VALIDATING, updated_at=NOW + timedelta(seconds=1))
+        .transition(TransactionStatus.APPROVED, updated_at=NOW + timedelta(seconds=2))
+        .transition(TransactionStatus.EXECUTING, updated_at=NOW + timedelta(seconds=3))
+        .transition(
+            TransactionStatus.COMPENSATING,
+            updated_at=NOW + timedelta(seconds=4),
+        )
+        .transition(
+            TransactionStatus.PARTIALLY_COMPENSATED,
+            updated_at=NOW + timedelta(seconds=5),
+            status_reason="One compensation failed.",
+        )
+    )
+
+    assert failed.status is TransactionStatus.FAILED
+    assert failed.status_reason == "Validation failed."
+    assert failed.completed_at == NOW + timedelta(seconds=2)
+    assert partially_compensated.status is TransactionStatus.PARTIALLY_COMPENSATED
+    assert partially_compensated.status_reason == "One compensation failed."
+
+
+@pytest.mark.parametrize(
+    ("current", "requested"),
+    [
+        (TransactionStatus.PROPOSED, TransactionStatus.COMMITTED),
+        (TransactionStatus.FAILED, TransactionStatus.EXECUTING),
+        (TransactionStatus.REJECTED, TransactionStatus.APPROVED),
+        (TransactionStatus.COMMITTED, TransactionStatus.EXECUTING),
+        (TransactionStatus.VALIDATING, TransactionStatus.EXECUTING),
+    ],
+)
+def test_illegal_transaction_transitions_are_rejected(
+    current: TransactionStatus,
+    requested: TransactionStatus,
+) -> None:
+    """Invalid edges raise a typed error before a new snapshot is created."""
+    extras: dict[str, object] = {}
+    if current in {
+        TransactionStatus.FAILED,
+        TransactionStatus.REJECTED,
+    }:
+        extras["status_reason"] = "Terminal."
+        extras["completed_at"] = NOW
+    elif current is TransactionStatus.COMMITTED:
+        extras["completed_at"] = NOW
+
+    transaction = make_transaction(status=current, **extras)
+
+    with pytest.raises(IllegalTransactionTransitionError) as exc_info:
+        transaction.transition(requested, updated_at=NOW + timedelta(seconds=1))
+
+    assert exc_info.value.current_status is current
+    assert exc_info.value.requested_status is requested
+
+
+def test_transition_validates_required_target_state_metadata() -> None:
+    """Legal transitions still validate target snapshot invariants."""
+    validating = make_transaction().transition(
+        TransactionStatus.VALIDATING,
+        updated_at=NOW + timedelta(seconds=1),
+    )
+
+    with pytest.raises(ValidationError, match="requires an approval request"):
+        validating.transition(
+            TransactionStatus.AWAITING_APPROVAL,
+            updated_at=NOW + timedelta(seconds=2),
+        )
+    with pytest.raises(ValidationError, match="requires a reason"):
+        validating.transition(
+            TransactionStatus.FAILED,
+            updated_at=NOW + timedelta(seconds=2),
+        )
 
 
 def test_ledger_event_serializes_ordered_audit_data() -> None:

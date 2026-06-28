@@ -1,5 +1,8 @@
-"""Transaction snapshot contracts."""
+"""Transaction snapshot contracts and state machine."""
 
-from agentactum.transactions.models import Transaction
+from agentactum.transactions.models import (
+    IllegalTransactionTransitionError,
+    Transaction,
+)
 
-__all__ = ["Transaction"]
+__all__ = ["IllegalTransactionTransitionError", "Transaction"]

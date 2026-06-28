@@ -22,6 +22,7 @@ def test_public_package_exports_domain_contracts() -> None:
         "IdempotencyOwnershipError",
         "IdempotencyRecord",
         "IdempotencyRecordStatus",
+        "IllegalTransactionTransitionError",
         "InMemoryIdempotencyBackend",
         "InMemoryLedger",
         "Ledger",
