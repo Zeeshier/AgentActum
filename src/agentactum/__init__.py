@@ -1,7 +1,14 @@
 """Public domain contracts for AgentActum."""
 
 from agentactum.approvals import ApprovalRequest
-from agentactum.compensation import CompensationResult
+from agentactum.compensation import (
+    CompensationCoordinator,
+    CompensationPlan,
+    CompensationResult,
+    CompensationSummary,
+    CompensationSummaryStatus,
+    Compensator,
+)
 from agentactum.contracts import (
     ActionIntent,
     DuplicateToolRegistrationError,
@@ -60,7 +67,12 @@ __all__ = [
     "ActionIntent",
     "ApprovalChecker",
     "ApprovalRequest",
+    "CompensationCoordinator",
+    "CompensationPlan",
     "CompensationResult",
+    "CompensationSummary",
+    "CompensationSummaryStatus",
+    "Compensator",
     "DuplicateToolRegistrationError",
     "EffectType",
     "ExecutionResult",
