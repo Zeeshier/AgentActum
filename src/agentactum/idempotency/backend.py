@@ -6,6 +6,8 @@ from threading import RLock
 from typing import Protocol
 from uuid import UUID, uuid4
 
+from pydantic import JsonValue
+
 from agentactum.idempotency.models import (
     IdempotencyClaim,
     IdempotencyRecord,
@@ -41,6 +43,7 @@ class IdempotencyBackend(Protocol):
         *,
         owner_token: UUID,
         result_reference: str | None = None,
+        result: JsonValue = None,
     ) -> IdempotencyRecord:
         """Mark a caller-owned idempotency record as completed."""
 
@@ -81,6 +84,7 @@ class InMemoryIdempotencyBackend:
         *,
         owner_token: UUID,
         result_reference: str | None = None,
+        result: JsonValue = None,
     ) -> IdempotencyRecord:
         """Mark a caller-owned idempotency record as completed."""
         with self._lock:
@@ -97,6 +101,7 @@ class InMemoryIdempotencyBackend:
                 claimed_at=record.claimed_at,
                 completed_at=self._clock(),
                 result_reference=result_reference,
+                result=result,
             )
             self._records[key] = completed
             return completed

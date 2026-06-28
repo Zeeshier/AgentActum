@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Self
 from uuid import UUID
 
-from pydantic import model_validator
+from pydantic import JsonValue, model_validator
 
 from agentactum._model import DomainModel, LongText, ShortText, Timestamp
 
@@ -25,12 +25,17 @@ class IdempotencyRecord(DomainModel):
     claimed_at: Timestamp
     completed_at: Timestamp | None = None
     result_reference: LongText | None = None
+    result: JsonValue = None
 
     @model_validator(mode="after")
     def validate_completion(self) -> Self:
         """Keep completion fields consistent with record status."""
         if self.status is IdempotencyRecordStatus.IN_PROGRESS:
-            if self.completed_at is not None or self.result_reference is not None:
+            if (
+                self.completed_at is not None
+                or self.result_reference is not None
+                or self.result is not None
+            ):
                 raise ValueError("in-progress records cannot contain completion data")
         else:
             if self.completed_at is None:
