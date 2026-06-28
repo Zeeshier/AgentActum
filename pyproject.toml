@@ -35,6 +35,9 @@ dev = [
   "pytest-cov>=6,<8",
   "ruff>=0.8,<1",
 ]
+langgraph = [
+  "langgraph>=0.2",
+]
 
 [project.urls]
 Repository = "https://github.com/Zeeshier/AgentActum"

@@ -8,6 +8,7 @@ def test_public_package_exports_domain_contracts() -> None:
     assert agentactum.__version__ == "0.1.0a0"
     assert set(agentactum.__all__) == {
         "ActionIntent",
+        "AgentActum",
         "ApprovalChecker",
         "ApprovalRequest",
         "CompensationCoordinator",

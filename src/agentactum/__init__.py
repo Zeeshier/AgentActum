@@ -36,6 +36,7 @@ from agentactum.execution import (
     SingleActionRuntime,
     StaticApprovalChecker,
 )
+from agentactum.facade import AgentActum
 from agentactum.idempotency import (
     IdempotencyBackend,
     IdempotencyClaim,
@@ -75,6 +76,7 @@ __version__ = "0.1.0a0"
 
 __all__ = [
     "ActionIntent",
+    "AgentActum",
     "ApprovalChecker",
     "ApprovalRequest",
     "CompensationCoordinator",
