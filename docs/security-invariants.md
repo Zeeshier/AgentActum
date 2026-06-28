@@ -34,6 +34,8 @@ be made to pass by weakening the invariant.
 - Sandboxing hostile Python callbacks.
 - Process crashes, machine loss, rollback of system clocks, or restart recovery.
 - Attacks on real external services, because 0.1 ships no such integrations.
+  The optional LangGraph adapter is a framework adapter, not an external
+  service integration.
 - Cryptographic tamper evidence or durable audit retention.
 - Preventing the trusted host application from calling a tool implementation
   directly instead of routing it through AgentActum.

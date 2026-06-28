@@ -72,7 +72,7 @@ from agentactum.policies import (
 )
 from agentactum.transactions import IllegalTransactionTransitionError, Transaction
 
-__version__ = "0.1.0a0"
+__version__ = "0.1.0"
 
 __all__ = [
     "ActionIntent",

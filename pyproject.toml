@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agentactum"
-version = "0.1.0a0"
+version = "0.1.0"
 description = "Transactional safety runtime for AI-agent tool actions"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,7 +15,7 @@ authors = [
 ]
 keywords = ["ai-agents", "safety", "transactions", "tool-use"]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
@@ -44,6 +44,9 @@ Repository = "https://github.com/Zeeshier/AgentActum"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+agentactum = ["py.typed"]
 
 [tool.pytest.ini_options]
 addopts = [

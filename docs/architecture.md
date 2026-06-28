@@ -2,9 +2,8 @@
 
 ## Status and scope
 
-This document proposes the architecture for version 0.1. It defines boundaries
-and behavior without implementing production code. The runtime is a synchronous,
-in-process Python 3.12+ library and remains usable without an LLM.
+This document describes the architecture for version 0.1. The runtime is a
+synchronous, in-process Python 3.12+ library and remains usable without an LLM.
 
 ## Architectural goals
 
@@ -15,8 +14,8 @@ in-process Python 3.12+ library and remains usable without an LLM.
 - Make every security-relevant state transition explicit and auditable.
 - Provide deterministic behavior under concurrent threads in one process.
 - Preserve truthful failure semantics when external state is uncertain.
-- Allow later persistence or framework adapters without embedding them in core
-  business logic now.
+- Allow persistence and additional framework adapters later without embedding
+  them in core business logic now.
 
 ## Context
 
@@ -42,29 +41,31 @@ Registered Python tool implementation -> external system (optional)
 The host application, registered contracts, policies, approver-identity adapter,
 and tool implementations are trusted. Action requests and tool data are not.
 
-## Proposed package boundaries
+## Package boundaries
 
-The eventual src-layout is expected to follow these logical boundaries. Names
-are provisional until implementation, but dependency direction is normative.
+The src-layout follows these logical boundaries. Dependency direction is
+normative.
 
 ```text
 src/agentactum/
-  models.py          shared immutable value objects and enums
-  contracts.py       tool contract declaration and registry
-  policies.py        policy protocol, decisions, composition
-  approvals.py       approval request/grant lifecycle
-  idempotency.py     atomic claim and outcome records
-  transactions.py   transaction state machine and shape validation
-  execution.py       executor invocation and output verification
-  compensation.py    reverse-order compensation coordination
-  ledger.py          audit event model and append/read protocol
-  runtime.py         use-case orchestration across the above services
-  errors.py          structured domain errors
-  integrations/      future adapters; empty or absent in 0.1
+  _model.py          shared model base types
+  enums.py           closed domain enums
+  contracts/         tool contract declaration and registry
+  policies/          policy protocol, decisions, composition
+  approvals/         approval request model
+  idempotency/       atomic claim and outcome records
+  transactions/      transaction state machine
+  execution/         single-action execution and output verification
+  compensation/      reverse-order compensation coordination
+  ledger/            audit event model and append/read protocol
+  outbox/            staged effect release after commit
+  facade.py          framework-independent callable-protection facade
+  langgraph.py       optional adapter; lazy LangGraph import only
 ```
 
-No module in the core imports LangGraph, CrewAI, AutoGen, an LLM SDK, or a real
-external-service client.
+No core enforcement module imports LangGraph, CrewAI, AutoGen, an LLM SDK, or a
+real external-service client. The optional `agentactum.langgraph` adapter is
+separate and imports LangGraph lazily only when constructing a `ToolNode`.
 
 ### Dependency rule
 
@@ -82,7 +83,7 @@ models/errors
    ^
    +-- runtime
    ^
-   +-- integrations (future)
+   +-- optional adapters
 ```
 
 ## Components and responsibilities
@@ -343,11 +344,11 @@ interpret the Python GIL as the synchronization design.
 
 ## Extension boundaries after 0.1
 
-Store protocols may later gain persistent implementations, and integrations may
-translate framework tool calls into `ActionRequest` values. Such work must keep
-domain models and state machines independent of a vendor SDK. Async support
-will require an explicit cancellation and locking design rather than wrapping
-synchronous methods mechanically.
+Store protocols may later gain persistent implementations, and additional
+integrations may translate framework tool calls into `ActionRequest` values.
+Such work must keep domain models and state machines independent of a vendor
+SDK. Async support will require an explicit cancellation and locking design
+rather than wrapping synchronous methods mechanically.
 
 ## How this architecture relates to adjacent systems
 
@@ -362,7 +363,8 @@ synchronous methods mechanically.
 
 ## Architectural non-goals
 
-Version 0.1 has no network boundary, database, worker process, queue, UI,
-framework adapter, real service integration, policy DSL, plugin discovery,
-untrusted-code sandbox, or crash recovery. It does not claim distributed
-transactions, exactly-once external effects, or tamper-proof storage.
+Version 0.1 has no network boundary, database, worker process, queue, UI, real
+service integration, policy DSL, plugin discovery, untrusted-code sandbox, or
+crash recovery. Beyond the optional LangGraph adapter, additional framework
+adapters are deferred. AgentActum does not claim distributed transactions,
+exactly-once external effects, or tamper-proof storage.

@@ -245,7 +245,7 @@ def test_required_idempotency_with_no_required_schema_fields_fails_closed() -> N
 
 
 def test_langgraph_extra_is_declared_without_core_import_dependency() -> None:
-    """Milestone 10 leaves LangGraph as a future optional integration extra."""
+    """The generic facade remains independent of optional adapters."""
     import agentactum
 
     assert agentactum.AgentActum is AgentActum
